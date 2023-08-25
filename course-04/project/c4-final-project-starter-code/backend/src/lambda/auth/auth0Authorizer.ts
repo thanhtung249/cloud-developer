@@ -12,7 +12,7 @@ const logger = createLogger('auth')
 // TODO: Provide a URL that can be used to download a certificate that can be used
 // to verify JWT token signature.
 // To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
-const jwksUrl = '...'
+const jwksUrl = 'https://dev-hxyrndbe0c1jcqoo.us.auth0.com/.well-known/jwks.json'
 
 export const handler = async (
   event: CustomAuthorizerEvent
@@ -61,7 +61,8 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  return undefined
+  const cert: string = await getSigningKeys(jwt.header.kid)
+  return verify(token, cert, { algorithms: ['RS256'] }) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
@@ -74,4 +75,36 @@ function getToken(authHeader: string): string {
   const token = split[1]
 
   return token
+}
+
+async function getSigningKeys(headerKid: string): Promise<string> {
+  const getJwks = await Axios.get(jwksUrl, {
+    headers: { 'Accept-Encoding': 'gzip,deflate,compress' }
+  })
+
+  const signingKeys = getJwks.data.keys
+    .filter(
+      (key) =>
+        key.use === 'sig' &&
+        key.kty === 'RSA' &&
+        key.kid &&
+        ((key.x5c && key.x5c.length) || (key.n && key.e))
+    )
+    .map((key) => {
+      return { kid: key.kid, nbf: key.nbf, publicKey: certToPEM(key.x5c[0]) }
+    })
+
+  if (!signingKeys.length) {
+    throw new Error('The JWKS endpoint did not contain any signing keys')
+  }
+
+  const key = signingKeys.find((k) => k.kid === headerKid)
+
+  return key.publicKey
+}
+
+function certToPEM(cert: string): string {
+  cert = cert.match(/.{1,64}/g).join('\n')
+  cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`
+  return cert
 }
