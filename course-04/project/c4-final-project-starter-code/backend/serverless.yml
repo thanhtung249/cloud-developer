@@ -25,7 +25,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-tungbt-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: serverless-tungbach-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   logs:
@@ -45,6 +45,42 @@ functions:
       - http:
           method: get
           path: todos
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - xray:PutTelemetryRecords
+          - xray:PutTraceSegments
+          - dynamodb:Query
+        Resource:
+          - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}'
+          - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}'
+
+  GetTodosFinished:
+    handler: src/lambda/http/getTodosFinished.handler
+    events:
+      - http:
+          method: get
+          path: todos/finished
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - xray:PutTelemetryRecords
+          - xray:PutTraceSegments
+          - dynamodb:Query
+        Resource:
+          - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}'
+          - 'arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}'
+  
+  GetTodosNotFinished:
+    handler: src/lambda/http/getTodosNotFinished.handler
+    events:
+      - http:
+          method: get
+          path: todos/notfinished
           cors: true
           authorizer: Auth
     iamRoleStatements:

@@ -44,6 +44,58 @@ export class TodosAccess {
       }
     }
   
+    async getTodosFinished(userId: string): Promise<TodoItem[]> {
+      try {
+        logger.info(`get todos finished for (userId) = (${userId})`)
+        const result = await this.docClient
+          .query({
+            TableName: this.todosTable,
+            KeyConditionExpression: 'userId = :userId',
+            FilterExpression: 'done = :done',
+            ExpressionAttributeValues: {
+              ':userId': userId,
+              ':done': true,
+            },
+            ScanIndexForward: false
+          })
+          .promise()
+
+        logger.info('Getting all finished todos for user successfully', userId, result)
+
+        const items = result.Items
+    
+        return items as TodoItem[]
+      } catch (error) {
+        logger.error('Failed to get finished todos for user', error, userId)
+      }
+    }
+
+    async getTodosNotFinished(userId: string): Promise<TodoItem[]> {
+      try {
+        logger.info(`get todos not finished for (userId) = (${userId})`)
+        const result = await this.docClient
+          .query({
+            TableName: this.todosTable,
+            KeyConditionExpression: 'userId = :userId',
+            FilterExpression: 'done = :done',
+            ExpressionAttributeValues: {
+              ':userId': userId,
+              ':done': false,
+            },
+            ScanIndexForward: false
+          })
+          .promise()
+
+        logger.info('Getting all not finished todos for user successfully', userId, result)
+
+        const items = result.Items
+    
+        return items as TodoItem[]
+      } catch (error) {
+        logger.error('Failed to get not finished todos for user', error, userId)
+      }
+    }
+
     async createTodo(todoItem: TodoItem): Promise<TodoItem> {
       try {
         logger.info(`creating todo`)

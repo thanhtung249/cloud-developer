@@ -17,6 +17,32 @@ export async function getTodos(idToken: string): Promise<Todo[]> {
   return response.data.items
 }
 
+export async function getTodosFinished(idToken: string): Promise<Todo[]> {
+  console.log('Fetching Todos Finished');
+
+  const response = await Axios.get(`${apiEndpoint}/todos/finished`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    }
+  })
+  console.log('Todos: ', response.data);
+  return response.data.items;
+}
+
+export async function getTodosNotFinished(idToken: string): Promise<Todo[]> {
+  console.log('Get Todos Not Finisedh');
+
+  const response = await Axios.get(`${apiEndpoint}/todos/notfinished`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
+    }
+  })
+  console.log('Todos: ', response.data);
+  return response.data.items;
+}
+
 export async function createTodo(
   idToken: string,
   newTodo: CreateTodoRequest

@@ -20,6 +20,18 @@ export async function getTodosForUser(userId: string): Promise<TodoItem[]> {
   return todos
 }
 
+export async function getTodosFinished(userId: string): Promise<any> {
+  logger.info(`Get list todo finished = ${userId}`);
+  const todos = await todosAccess.getTodosFinished(userId);
+  return todos
+}
+
+export async function getTodosNotFinished(userId: string): Promise<any> {
+  logger.info(`Get list todo not finished = ${userId}`);
+  const todos = await todosAccess.getTodosNotFinished(userId);
+  return todos
+}
+
 export async function updateTodo(
   userId: string,
   todoId: string,
