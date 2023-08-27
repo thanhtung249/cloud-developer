@@ -99,7 +99,7 @@ export async function createAttachmentPresignedUrl(
   const updatedTodo: TodoItem = await todosAccess.updateTodoAttachmentUrl(
     userId,
     todoId,
-    urlObj.toString()
+    urlObj.toString().split("?")[0]
   )
   if (updatedTodo) {
     logger.info(`Updated todo attachment URL`)
